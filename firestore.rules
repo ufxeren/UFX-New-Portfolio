@@ -1,0 +1,126 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: projects
+    // Document ID: auto-generated
+    // Fields:
+    //   - title: string (required, max 100 chars)
+    //   - category: string (required, max 50 chars)
+    //   - imageUrl: string (required, valid URL, max 500 chars)
+    //   - date: string (required, YYYY-MM-DD format)
+    //   - createdAt: timestamp (required, immutable)
+    //
+    // Collection: inquiries
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, max 100 chars)
+    //   - email: string (required, valid email, max 100 chars)
+    //   - category: string (required, max 50 chars)
+    //   - description: string (required, max 2000 chars)
+    //   - fileName: string (optional, max 200 chars)
+    //   - date: string (required, YYYY-MM-DD format)
+    //   - createdAt: timestamp (required, immutable)
+    //   - status: string (required, 'unread' or 'read')
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        request.auth.token.email == "ufxeren@gmail.com" && 
+        request.auth.token.email_verified == true;
+    }
+
+    function hasOnlyAllowedFields(allowedFields) {
+      return request.resource.data.keys().hasOnly(allowedFields);
+    }
+
+    function hasRequiredFields(requiredFields) {
+      return request.resource.data.keys().hasAll(requiredFields);
+    }
+
+    function isValidUrl(url) {
+      return url is string && (url.matches("^https://.*") || url.matches("^http://.*")) && url.size() <= 500;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") && email.size() <= 100;
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}$");
+    }
+
+    function isTimestamp(field) {
+      return request.resource.data[field] is timestamp;
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidProject() {
+      let data = request.resource.data;
+      return hasOnlyAllowedFields(['title', 'category', 'imageUrl', 'date', 'createdAt']) &&
+             hasRequiredFields(['title', 'category', 'imageUrl', 'date', 'createdAt']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() <= 100 &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 50 &&
+             isValidUrl(data.imageUrl) &&
+             isValidDateString(data.date) &&
+             isTimestamp('createdAt');
+    }
+
+    function isValidInquiry() {
+      let data = request.resource.data;
+      return hasOnlyAllowedFields(['name', 'email', 'category', 'description', 'fileName', 'date', 'createdAt', 'status']) &&
+             hasRequiredFields(['name', 'email', 'category', 'description', 'date', 'createdAt', 'status']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             isValidEmail(data.email) &&
+             data.category is string && data.category.size() > 0 && data.category.size() <= 50 &&
+             data.description is string && data.description.size() > 0 && data.description.size() <= 2000 &&
+             (!('fileName' in data) || (data.fileName is string && data.fileName.size() <= 200)) &&
+             isValidDateString(data.date) &&
+             isTimestamp('createdAt') &&
+             data.status in ['unread', 'read'];
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /projects/{projectId} {
+      // Anyone can read projects (for the portfolio)
+      allow read: if true;
+      
+      // Only admin can create, update, delete projects
+      allow create: if isAdmin() && isValidProject();
+      allow update: if isAdmin() && isValidProject() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+
+    match /inquiries/{inquiryId} {
+      // Only admin can read inquiries
+      allow read: if isAdmin();
+      
+      // Anyone can submit an inquiry
+      allow create: if isValidInquiry();
+      
+      // Only admin can update (e.g., mark as read) or delete inquiries
+      allow update: if isAdmin() && isValidInquiry() && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "Project": {
+      "title": "Project",
+      "description": "A portfolio project to display on the site.",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "The title of the project."
+        },
+        "category": {
+          "type": "string",
+          "description": "The category of the project (e.g., Thumbnails, Posters)."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "The URL of the project image."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date the project was created or added (YYYY-MM-DD)."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "The exact time the document was created."
+        }
+      },
+      "required": ["title", "category", "imageUrl", "date", "createdAt"]
+    },
+    "Inquiry": {
+      "title": "Inquiry",
+      "description": "A contact form submission from a potential client.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the person inquiring."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The email address of the person inquiring."
+        },
+        "category": {
+          "type": "string",
+          "description": "The project category they are interested in."
+        },
+        "description": {
+          "type": "string",
+          "description": "Details about their project."
+        },
+        "fileName": {
+          "type": "string",
+          "description": "Optional name of an uploaded file."
+        },
+        "date": {
+          "type": "string",
+          "description": "The date the inquiry was submitted (YYYY-MM-DD)."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "The exact time the document was created."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["unread", "read"],
+          "description": "The status of the inquiry."
+        }
+      },
+      "required": ["name", "email", "category", "description", "date", "createdAt", "status"]
+    }
+  },
+  "firestore": {
+    "/projects/{projectId}": {
+      "schema": {
+        "$ref": "#/entities/Project"
+      },
+      "description": "Collection of portfolio projects."
+    },
+    "/inquiries/{inquiryId}": {
+      "schema": {
+        "$ref": "#/entities/Inquiry"
+      },
+      "description": "Collection of contact form inquiries."
+    }
+  }
+}
