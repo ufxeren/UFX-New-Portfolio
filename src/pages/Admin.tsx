@@ -56,6 +56,8 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   alert('An error occurred. Check console for details.');
 }
 
+const ALLOWED_ADMIN_EMAILS = ['ufxeren@gmail.com', 'faizaniqbal610@gmail.com', 'rashidaman621@gmail.com', 'gamingroyal926@gmail.com'];
+
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
@@ -71,7 +73,7 @@ export default function Admin() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setIsAuthenticated(!!user);
-      setIsAdminUser(user?.email === 'ufxeren@gmail.com');
+      setIsAdminUser(user?.email ? ALLOWED_ADMIN_EMAILS.includes(user.email) : false);
       setIsAuthReady(true);
     });
     return () => unsubscribe();
