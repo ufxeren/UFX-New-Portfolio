@@ -56,7 +56,7 @@ function handleFirestoreError(error: unknown, operationType: OperationType, path
   alert('An error occurred. Check console for details.');
 }
 
-const ALLOWED_ADMIN_EMAILS = ['ufxeren@gmail.com', 'faizaniqbal610@gmail.com', 'rashidaman621@gmail.com', 'gamingroyal926@gmail.com'];
+const ALLOWED_ADMIN_EMAILS = ['ufxeren@gmail.com', 'faizaniqbal610@gmail.com'];
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -292,7 +292,7 @@ export default function Admin() {
                     </select>
                   </div>
                   <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm text-text-secondary uppercase">Image URL</label>
+                    <label className="text-sm text-text-secondary uppercase">Media URL (Image or Video)</label>
                     <input
                       type="url"
                       required
@@ -316,12 +316,16 @@ export default function Admin() {
               {projects.map((project) => (
                 <div key={project.id} className="bg-bg-surface rounded-2xl border border-white/10 overflow-hidden group">
                   <div className="relative aspect-video">
-                    <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                      <button className="p-2 bg-white/20 hover:bg-white/40 rounded-full backdrop-blur-md transition-colors">
+                    {project.category === 'Video' || project.imageUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                      <video src={project.imageUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline controls />
+                    ) : (
+                      <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                    )}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 pointer-events-none">
+                      <button className="p-2 bg-white/20 hover:bg-white/40 rounded-full backdrop-blur-md transition-colors pointer-events-auto">
                         <Edit2 size={20} className="text-white" />
                       </button>
-                      <button onClick={() => handleDeleteProject(project.id)} className="p-2 bg-red-500/80 hover:bg-red-500 rounded-full backdrop-blur-md transition-colors">
+                      <button onClick={() => handleDeleteProject(project.id)} className="p-2 bg-red-500/80 hover:bg-red-500 rounded-full backdrop-blur-md transition-colors pointer-events-auto">
                         <Trash2 size={20} className="text-white" />
                       </button>
                     </div>

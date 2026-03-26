@@ -137,17 +137,29 @@ export default function Portfolio() {
                     onMouseLeave={() => setHoveredId(null)}
                   >
                     <div className="relative w-full overflow-hidden">
-                      <img
-                        src={project.imageUrl}
-                        alt={project.title}
-                        className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                      />
+                      {project.category === 'Video' || project.imageUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                        <video
+                          src={project.imageUrl}
+                          className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          controls
+                        />
+                      ) : (
+                        <img
+                          src={project.imageUrl}
+                          alt={project.title}
+                          className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                      )}
                       
                       {/* Overlay */}
                       <div
-                        className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 transition-all duration-500 ${
+                        className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-6 transition-all duration-500 pointer-events-none ${
                           hoveredId === project.id ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                         }`}
                       >
