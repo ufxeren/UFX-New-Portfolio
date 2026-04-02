@@ -4,6 +4,8 @@ import { LogOut, Plus, Edit2, Trash2, Mail, Image as ImageIcon, Video, Layout, F
 import { auth, db, googleProvider } from '../firebase';
 import { signInWithPopup, signOut, onAuthStateChanged } from 'firebase/auth';
 import { collection, onSnapshot, addDoc, deleteDoc, doc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { getEmbedUrl, isVideoUrl } from '../utils';
+import VideoPlayer from '../components/VideoPlayer';
 
 enum OperationType {
   CREATE = 'create',
@@ -316,11 +318,27 @@ export default function Admin() {
               {projects.map((project) => (
                 <div key={project.id} className="bg-bg-surface rounded-2xl border border-white/10 overflow-hidden group">
                   <div className="relative aspect-video">
-                    {project.category === 'Video' || project.imageUrl.match(/\.(mp4|webm|ogg)$/i) ? (
-                      <video src={project.imageUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline controls />
-                    ) : (
-                      <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
-                    )}
+                    {(() => {
+                      const embedUrl = getEmbedUrl(project.imageUrl);
+                      if (embedUrl) {
+                        return (
+                          <iframe
+                            src={embedUrl}
+                            className="w-full h-full object-cover"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          />
+                        );
+                      } else if (isVideoUrl(project.imageUrl, project.category)) {
+                        return (
+                          <VideoPlayer src={project.imageUrl} className="w-full h-full" />
+                        );
+                      } else {
+                        return (
+                          <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                        );
+                      }
+                    })()}
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 pointer-events-none">
                       <button className="p-2 bg-white/20 hover:bg-white/40 rounded-full backdrop-blur-md transition-colors pointer-events-auto">
                         <Edit2 size={20} className="text-white" />

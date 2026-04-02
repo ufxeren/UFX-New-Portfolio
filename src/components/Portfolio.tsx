@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Play, ChevronDown, Loader2 } from 'lucide-react';
 import { db } from '../firebase';
 import { collection, onSnapshot, query, orderBy, limit, where } from 'firebase/firestore';
+import { getEmbedUrl, isVideoUrl } from '../utils';
+import VideoPlayer from './VideoPlayer';
 
 type Category = 'All' | 'Thumbnails' | 'Posters' | 'UI/UX' | 'Video';
 
@@ -137,25 +139,36 @@ export default function Portfolio() {
                     onMouseLeave={() => setHoveredId(null)}
                   >
                     <div className="relative w-full overflow-hidden">
-                      {project.category === 'Video' || project.imageUrl.match(/\.(mp4|webm|ogg)$/i) ? (
-                        <video
-                          src={project.imageUrl}
-                          className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          controls
-                        />
-                      ) : (
-                        <img
-                          src={project.imageUrl}
-                          alt={project.title}
-                          className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-                          loading="lazy"
-                          referrerPolicy="no-referrer"
-                        />
-                      )}
+                      {(() => {
+                        const embedUrl = getEmbedUrl(project.imageUrl);
+                        if (embedUrl) {
+                          return (
+                            <iframe
+                              src={embedUrl}
+                              className="w-full aspect-video transition-transform duration-700 ease-out group-hover:scale-110"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          );
+                        } else if (isVideoUrl(project.imageUrl, project.category)) {
+                          return (
+                            <VideoPlayer
+                              src={project.imageUrl}
+                              className="w-full h-auto transition-transform duration-700 ease-out group-hover:scale-110"
+                            />
+                          );
+                        } else {
+                          return (
+                            <img
+                              src={project.imageUrl}
+                              alt={project.title}
+                              className="w-full h-auto object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                              loading="lazy"
+                              referrerPolicy="no-referrer"
+                            />
+                          );
+                        }
+                      })()}
                       
                       {/* Overlay */}
                       <div
@@ -167,12 +180,6 @@ export default function Portfolio() {
                           {project.category}
                         </span>
                         <h3 className="text-xl font-bold text-white leading-tight">{project.title}</h3>
-                        
-                        {project.category === 'Video' && (
-                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/20">
-                            <Play className="text-white fill-white ml-1" size={20} />
-                          </div>
-                        )}
                       </div>
                     </div>
                   </motion.div>
